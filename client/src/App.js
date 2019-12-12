@@ -1,5 +1,4 @@
 import React from "react";
-import "./App.css";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import Container from "@material-ui/core/Container";
@@ -7,6 +6,7 @@ import Container from "@material-ui/core/Container";
 import Header from "./Components/Header/Header";
 import Login from "./Components/Auth/Login";
 import Register from "./Components/Auth/Register";
+import Chat from "./Components/Chat/Chat";
 
 function App() {
   return (
@@ -22,17 +22,14 @@ function App() {
               <Register />
             </Route>
             <Route exact path="/">
-              <Home />
+              <h3 style={{ fontWeight: "normal" }}>Welcome, User</h3>
+              <Chat />
             </Route>
           </Switch>
         </Container>
       </Router>
     </div>
   );
-}
-
-function Home() {
-  return <h2>Home</h2>;
 }
 
 export default App;
