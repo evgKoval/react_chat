@@ -1,4 +1,6 @@
 import React from "react";
+import API from "../../api";
+import { Redirect } from "react-router-dom";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
@@ -16,7 +18,15 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-function Chat(props) {
+class Chat extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      redirect: false,
+      error: null
+    };
+  }
+  
   const classes = useStyles();
 
   const [selectedIndex, setSelectedIndex] = React.useState(1);
@@ -25,7 +35,13 @@ function Chat(props) {
     setSelectedIndex(index);
   };
 
-  return (
+  componentDidMount() {
+    if (!localStorage.getItem("token")) {
+      this.setState({ redirect: true });
+    }
+  }
+
+return (
     <Paper>
       <Grid container>
         <Grid item xs={3}>

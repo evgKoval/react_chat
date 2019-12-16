@@ -1,4 +1,7 @@
 import React from "react";
+import API from "../../api";
+
+import { Redirect } from "react-router-dom";
 
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 
@@ -10,7 +13,9 @@ class Register extends React.Component {
     this.state = {
       name: "",
       email: "",
-      password: ""
+      password: "",
+      redirect: false,
+      error: null
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -28,12 +33,27 @@ class Register extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    console.log(this.state);
+
+    API.post("/register", {
+      name: this.state.name,
+      email: this.state.email,
+      password: this.state.password
+    })
+      .then(res => {
+        this.setState({ redirect: true });
+      })
+      .catch(error => this.setState({ error: error.response.data.message }));
   }
 
   render() {
+    const { redirect } = this.state;
+
+    if (redirect) {
+      return <Redirect to="/login" />;
+    }
+
     return (
-      <ValidatorForm onSubmit={this.handleSubmit}>
+      <ValidatorForm onSubmit={this.handleSubmit} style={{ marginBottom: 32 }}>
         <h1 style={{ marginBottom: 24 }}>Register</h1>
         <TextValidator
           name="name"
@@ -84,6 +104,9 @@ class Register extends React.Component {
         >
           Sign Up
         </Button>
+        {this.state.error != null ? (
+          <h3 className="text-error">{this.state.error}</h3>
+        ) : null}
       </ValidatorForm>
     );
   }
