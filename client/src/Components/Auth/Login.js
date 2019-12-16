@@ -1,4 +1,5 @@
 import React from "react";
+import API from "../../api";
 
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 
@@ -9,7 +10,8 @@ class Login extends React.Component {
     super(props);
     this.state = {
       email: "",
-      password: ""
+      password: "",
+      error: null
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -27,12 +29,21 @@ class Login extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    console.log(this.state);
+
+    API.post("/login", {
+      email: this.state.email,
+      password: this.state.password
+    })
+      .then(res => {
+        localStorage.setItem("token", res.data.token);
+        //this.setState({ redirect: true });
+      })
+      .catch(error => this.setState({ error: error.response.data.message }));
   }
 
   render() {
     return (
-      <ValidatorForm onSubmit={this.handleSubmit}>
+      <ValidatorForm onSubmit={this.handleSubmit} style={{ marginBottom: 32 }}>
         <h1 style={{ marginBottom: 24 }}>Login</h1>
         <TextValidator
           name="email"
@@ -69,6 +80,9 @@ class Login extends React.Component {
         >
           Sign In
         </Button>
+        {this.state.error != null ? (
+          <h3 className="text-error">{this.state.error}</h3>
+        ) : null}
       </ValidatorForm>
     );
   }
