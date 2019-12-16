@@ -6,10 +6,16 @@ import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
+import TelegramIcon from "@material-ui/icons/Telegram";
 
 const useStyles = makeStyles(theme => ({
   title: {
-    flexGrow: 1
+    marginRight: "auto"
+  },
+  icon: {
+    position: "relative",
+    top: 5,
+    paddingRight: 5
   }
 }));
 
@@ -19,7 +25,13 @@ function Header(props) {
   return (
     <AppBar position="static" color="primary">
       <Toolbar>
-        <Typography variant="h6" className={classes.title}>
+        <Typography
+          variant="h6"
+          component={Link}
+          to="/"
+          className={classes.title}
+        >
+          <TelegramIcon className={classes.icon} />
           ReactChat
         </Typography>
         <Button color="inherit" component={Link} to="/login">
