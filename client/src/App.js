@@ -7,7 +7,6 @@ import Header from "./Components/Header/Header";
 import Chat from "./Components/Chat/Chat";
 import Login from "./Components/Auth/Login";
 import Register from "./Components/Auth/Register";
-import Chat from "./Components/Chat/Chat";
 
 function App() {
   return (
