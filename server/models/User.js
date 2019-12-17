@@ -16,21 +16,6 @@ module.exports = class User {
     });
   }
 
-  // static checkEmail(email) {
-  //   return new Promise((res, rej) => {
-  //     pool.query(
-  //       "SELECT COUNT(email) FROM users WHERE email = $1",
-  //       [email],
-  //       (error, results) => {
-  //         if (error) {
-  //           rej(error);
-  //         }
-  //         res(results.rows[0].count);
-  //       }
-  //     );
-  //   });
-  // }
-
   static login(email, password) {
     return new Promise((res, rej) => {
       pool.query(
@@ -47,6 +32,18 @@ module.exports = class User {
     });
   }
 
+  static getAll() {
+    return new Promise((res, rej) => {
+      pool.query("SELECT id, name, avatar FROM users", (error, results) => {
+        if (error) {
+          rej(error);
+        }
+
+        res(results.rows);
+      });
+    });
+  }
+
   static getUserById(id) {
     return new Promise((res, rej) => {
       pool.query(
@@ -56,7 +53,7 @@ module.exports = class User {
           if (error) {
             rej(error);
           }
-          console.log(results);
+
           res(results.rows);
         }
       );

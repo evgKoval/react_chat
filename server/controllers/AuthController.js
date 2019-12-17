@@ -1,6 +1,16 @@
 const User = require("../models/User");
 const { Helper } = require("./Helper");
 
+exports.index = async function(request, response) {
+  try {
+    const users = await User.getAll();
+
+    response.status(200).json({ users });
+  } catch (error) {
+    response.status(400).json(error);
+  }
+};
+
 exports.register = async function(request, response) {
   const name = request.body.name;
   const email = request.body.email;
