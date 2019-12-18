@@ -2,11 +2,10 @@ import React from "react";
 import jwtDecode from "jwt-decode";
 import API from "../../api";
 import "./Chat.css";
-import avatar from "../../images/default_avatar.png";
-// import API from "../../api";
 // import { Redirect } from "react-router-dom";
 
 import ModalCreate from "../Modals/Create";
+import Message from "./Message";
 import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import List from "@material-ui/core/List";
@@ -16,11 +15,9 @@ import ListItemText from "@material-ui/core/ListItemText";
 import TextField from "@material-ui/core/TextField";
 import InputBase from "@material-ui/core/InputBase";
 import IconButton from "@material-ui/core/IconButton";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import Avatar from "@material-ui/core/Avatar";
-import Typography from "@material-ui/core/Typography";
-import PostAddIcon from "@material-ui/icons/PostAdd";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import SendIcon from "@material-ui/icons/Send";
+import PostAddIcon from "@material-ui/icons/PostAdd";
 
 class Chat extends React.Component {
   constructor(props) {
@@ -32,18 +29,37 @@ class Chat extends React.Component {
       open: false,
       userId: 0,
       chats: [],
-      chatsFiltered: []
+      chatsFiltered: [],
+      messages: [],
+      messagesFiltered: [],
+      loadingChats: true,
+      loadingMessages: true
     };
+
+    this.sendInput = React.createRef();
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     const token = localStorage.getItem("token");
     if (!token) {
       this.setState({ redirect: true });
     }
 
-    API.get("/chats").then(res =>
-      this.setState({ chats: res.data.chats, chatsFiltered: res.data.chats })
+    await API.get("/chats").then(res => {
+      this.setState({ chats: res.data.chats, chatsFiltered: res.data.chats });
+
+      this.setState({ loadingChats: false });
+    });
+
+    await API.get("chats/" + this.state.chats[0].id + "/messages/").then(
+      res => {
+        this.setState({
+          messages: res.data.messages,
+          messagesFiltered: res.data.messages
+        });
+
+        this.setState({ loadingMessages: false });
+      }
     );
 
     this.setState({
@@ -62,12 +78,44 @@ class Chat extends React.Component {
       chat.name.toLowerCase().includes(value)
     );
 
-    this.setState({ chatsFiltered: chatsFiltered });
+    this.setState({ chatsFiltered });
+  }
+
+  handleSearchMessage(value) {
+    const messages = [...this.state.messages];
+
+    if (value === "") {
+      this.setState({ messagesFiltered: messages });
+    }
+
+    const messagesFiltered = messages.filter(message =>
+      message.text.toLowerCase().includes(value)
+    );
+
+    this.setState({ messagesFiltered });
+  }
+
+  handleSendMessage() {
+    const sendInput = this.sendInput.current.querySelector("input");
+
+    API.post("/chats/messages", {
+      chat_id: this.state.chats[0].id,
+      text: sendInput.value
+    }).then(res => console.log(res));
   }
 
   render() {
-    const handleListItemClick = index => {
+    const handleListItemClick = (index, chatId) => {
       this.setState({ selectedIndex: index });
+
+      API.get("chats/" + chatId + "/messages/").then(res => {
+        this.setState({
+          messages: res.data.messages,
+          messagesFiltered: res.data.messages
+        });
+
+        this.sendInput.current.querySelector("input").value = "";
+      });
     };
 
     const handleClickOpenModal = () => {
@@ -102,7 +150,15 @@ class Chat extends React.Component {
                 </ListItemIcon>
                 <ListItemText primary="Create a new chat" />
               </ListItem>
-              {this.state.chatsFiltered.length === 0 ? (
+              {this.state.loadingChats === true ? (
+                <div style={{ textAlign: "center" }}>
+                  <CircularProgress
+                    color="secondary"
+                    size={30}
+                    style={{ textAlign: "center" }}
+                  />
+                </div>
+              ) : this.state.chatsFiltered.length === 0 ? (
                 <h5 style={{ textAlign: "center" }}>
                   There are no chats by this query
                 </h5>
@@ -113,25 +169,13 @@ class Chat extends React.Component {
                       key={chat.id}
                       button
                       selected={this.state.selectedIndex === index}
-                      onClick={event => handleListItemClick(index)}
+                      onClick={event => handleListItemClick(index, chat.id)}
                     >
                       <ListItemText primary={chat.name} />
                     </ListItem>
                   );
                 })
               )}
-              {/* {this.state.chatsFiltered.map((chat, index) => {
-                return (
-                  <ListItem
-                    key={chat.id}
-                    button
-                    selected={this.state.selectedIndex === index}
-                    onClick={event => handleListItemClick(index)}
-                  >
-                    <ListItemText primary={chat.name} />
-                  </ListItem>
-                );
-              })} */}
             </List>
             <TextField
               id="chat-search"
@@ -159,75 +203,46 @@ class Chat extends React.Component {
               label="Search by message"
               variant="filled"
               fullWidth
+              onChange={e => {
+                this.handleSearchMessage(e.target.value);
+              }}
             />
             <div className="chat-messages">
-              <Paper className="chat-message">
-                <ListItem alignItems="flex-start">
-                  <ListItemAvatar>
-                    <Avatar alt="Wesley" src="/static/images/avatar/1.jpg" />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary="Wesley"
-                    secondary={
-                      <React.Fragment>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="textPrimary"
-                        >
-                          Hello, brothers
-                        </Typography>
-                      </React.Fragment>
-                    }
+              {this.state.loadingMessages === true ? (
+                <div style={{ textAlign: "center" }}>
+                  <CircularProgress
+                    color="secondary"
+                    style={{ textAlign: "center" }}
                   />
-                </ListItem>
-              </Paper>
-              <Paper className="chat-message">
-                <ListItem alignItems="flex-start">
-                  <ListItemAvatar>
-                    <Avatar src={avatar} />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary="Wesley"
-                    secondary={
-                      <React.Fragment>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="textPrimary"
-                        >
-                          How are you?
-                        </Typography>
-                      </React.Fragment>
-                    }
-                  />
-                </ListItem>
-              </Paper>
-              <Paper className="chat-message chat-message-own">
-                <ListItem alignItems="flex-start">
-                  <ListItemText
-                    color="primary"
-                    secondary={
-                      <React.Fragment>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="textPrimary"
-                        >
-                          Cool!
-                        </Typography>
-                      </React.Fragment>
-                    }
-                  />
-                </ListItem>
-              </Paper>
+                </div>
+              ) : this.state.messagesFiltered.length === 0 ? (
+                <h3 style={{ textAlign: "center" }}>
+                  There are no messages in this chat
+                </h3>
+              ) : (
+                this.state.messagesFiltered.map((message, index) => {
+                  return (
+                    <Message
+                      key={index}
+                      name={message.name}
+                      avatar={message.avatar}
+                      text={message.text}
+                      own={message.own}
+                    />
+                  );
+                })
+              )}
             </div>
-            <Paper component="form" className="message-form">
-              <InputBase className="message-input" placeholder="..." />
+            <Paper className="message-form">
+              <InputBase
+                className="message-input"
+                placeholder="..."
+                ref={this.sendInput}
+              />
               <IconButton
-                type="submit"
                 className="message-icon"
                 aria-label="search"
+                onClick={event => this.handleSendMessage(event)}
               >
                 <SendIcon color="primary" />
               </IconButton>
