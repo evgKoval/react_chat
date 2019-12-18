@@ -1,3 +1,5 @@
+const jwtDecode = require("jwt-decode");
+
 const Chat = require("../models/Chat");
 
 exports.index = async function(request, response) {
@@ -25,6 +27,33 @@ exports.store = async function(request, response) {
     }
 
     response.status(200).json({ chat: chat.id });
+  } catch (error) {
+    response.status(400).json(error);
+  }
+};
+
+exports.messages = async function(request, response) {
+  const userId = jwtDecode(request.headers["x-access-token"]).userId;
+  const chatId = request.params.id;
+
+  try {
+    const messages = await Chat.getMessages(chatId, userId);
+
+    response.status(200).json({ messages });
+  } catch (error) {
+    response.status(400).json(error);
+  }
+};
+
+exports.send = async function(request, response) {
+  const userId = jwtDecode(request.headers["x-access-token"]).userId;
+  const chatId = request.body.chat_id;
+  const text = request.body.text;
+
+  try {
+    const message = await Chat.sendText(chatId, userId, text);
+
+    response.status(200).json({ message });
   } catch (error) {
     response.status(400).json(error);
   }

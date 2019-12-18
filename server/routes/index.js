@@ -11,5 +11,7 @@ router.post("/register", AuthController.register);
 
 router.get("/chats", Auth.verifyToken, ChatController.index);
 router.post("/chats", Auth.verifyToken, ChatController.store);
+router.get("/chats/:id/messages", Auth.verifyToken, ChatController.messages);
+router.post("/chats/messages", Auth.verifyToken, ChatController.send);
 
 module.exports = router;
