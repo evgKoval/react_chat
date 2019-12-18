@@ -2,7 +2,6 @@ import React from "react";
 import jwtDecode from "jwt-decode";
 import API from "../../api";
 import "./Chat.css";
-// import API from "../../api";
 // import { Redirect } from "react-router-dom";
 
 import ModalCreate from "../Modals/Create";
@@ -16,6 +15,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import TextField from "@material-ui/core/TextField";
 import InputBase from "@material-ui/core/InputBase";
 import IconButton from "@material-ui/core/IconButton";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import SendIcon from "@material-ui/icons/Send";
 import PostAddIcon from "@material-ui/icons/PostAdd";
 
@@ -31,7 +31,9 @@ class Chat extends React.Component {
       chats: [],
       chatsFiltered: [],
       messages: [],
-      messagesFiltered: []
+      messagesFiltered: [],
+      loadingChats: true,
+      loadingMessages: true
     };
 
     this.sendInput = React.createRef();
@@ -43,15 +45,21 @@ class Chat extends React.Component {
       this.setState({ redirect: true });
     }
 
-    await API.get("/chats").then(res =>
-      this.setState({ chats: res.data.chats, chatsFiltered: res.data.chats })
-    );
+    await API.get("/chats").then(res => {
+      this.setState({ chats: res.data.chats, chatsFiltered: res.data.chats });
 
-    await API.get("chats/" + this.state.chats[0].id + "/messages/").then(res =>
-      this.setState({
-        messages: res.data.messages,
-        messagesFiltered: res.data.messages
-      })
+      this.setState({ loadingChats: false });
+    });
+
+    await API.get("chats/" + this.state.chats[0].id + "/messages/").then(
+      res => {
+        this.setState({
+          messages: res.data.messages,
+          messagesFiltered: res.data.messages
+        });
+
+        this.setState({ loadingMessages: false });
+      }
     );
 
     this.setState({
@@ -97,8 +105,17 @@ class Chat extends React.Component {
   }
 
   render() {
-    const handleListItemClick = index => {
+    const handleListItemClick = (index, chatId) => {
       this.setState({ selectedIndex: index });
+
+      API.get("chats/" + chatId + "/messages/").then(res => {
+        this.setState({
+          messages: res.data.messages,
+          messagesFiltered: res.data.messages
+        });
+
+        this.sendInput.current.querySelector("input").value = "";
+      });
     };
 
     const handleClickOpenModal = () => {
@@ -133,7 +150,15 @@ class Chat extends React.Component {
                 </ListItemIcon>
                 <ListItemText primary="Create a new chat" />
               </ListItem>
-              {this.state.chatsFiltered.length === 0 ? (
+              {this.state.loadingChats === true ? (
+                <div style={{ textAlign: "center" }}>
+                  <CircularProgress
+                    color="secondary"
+                    size={30}
+                    style={{ textAlign: "center" }}
+                  />
+                </div>
+              ) : this.state.chatsFiltered.length === 0 ? (
                 <h5 style={{ textAlign: "center" }}>
                   There are no chats by this query
                 </h5>
@@ -144,7 +169,7 @@ class Chat extends React.Component {
                       key={chat.id}
                       button
                       selected={this.state.selectedIndex === index}
-                      onClick={event => handleListItemClick(index)}
+                      onClick={event => handleListItemClick(index, chat.id)}
                     >
                       <ListItemText primary={chat.name} />
                     </ListItem>
@@ -183,7 +208,14 @@ class Chat extends React.Component {
               }}
             />
             <div className="chat-messages">
-              {this.state.messagesFiltered.length === 0 ? (
+              {this.state.loadingMessages === true ? (
+                <div style={{ textAlign: "center" }}>
+                  <CircularProgress
+                    color="secondary"
+                    style={{ textAlign: "center" }}
+                  />
+                </div>
+              ) : this.state.messagesFiltered.length === 0 ? (
                 <h3 style={{ textAlign: "center" }}>
                   There are no messages in this chat
                 </h3>
@@ -201,7 +233,7 @@ class Chat extends React.Component {
                 })
               )}
             </div>
-            <Paper component="form" className="message-form">
+            <Paper className="message-form">
               <InputBase
                 className="message-input"
                 placeholder="..."
