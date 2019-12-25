@@ -103,17 +103,17 @@ class Chat extends React.Component {
         chatId,
         userId
       });
+    });
 
-      socket.on("get access", responseAccess => {
-        this.setState({ access: responseAccess });
+    socket.on("get access", responseAccess => {
+      this.setState({ access: responseAccess });
 
-        if (responseAccess) {
-          socket.emit("get messages", {
-            userId,
-            chatId
-          });
-        }
-      });
+      if (responseAccess) {
+        socket.emit("get messages", {
+          userId: this.state.userId,
+          chatId: this.state.selectedChatId
+        });
+      }
     });
 
     socket.on("get messages", messages => {
@@ -169,6 +169,19 @@ class Chat extends React.Component {
         messagesFiltered: messages,
         loadingMessages: false
       });
+    });
+
+    socket.on("get access", responseAccess => {
+      if (responseAccess) {
+        socket.emit("get messages", {
+          userId: this.state.userId,
+          chatId: this.state.selectedChatId
+        });
+
+        this.setState({ access: responseAccess });
+      } else {
+        this.setState({ access: responseAccess, loadingMessages: false });
+      }
     });
 
     this.props.getUsers();
@@ -311,19 +324,6 @@ class Chat extends React.Component {
       socket.emit("get access", {
         chatId,
         userId: this.state.userId
-      });
-
-      socket.on("get access", responseAccess => {
-        if (responseAccess) {
-          socket.emit("get messages", {
-            userId: this.state.userId,
-            chatId
-          });
-
-          this.setState({ access: responseAccess });
-        } else {
-          this.setState({ access: responseAccess, loadingMessages: false });
-        }
       });
 
       // socket.emit("get messages", {
