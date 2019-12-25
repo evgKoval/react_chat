@@ -44,17 +44,33 @@ module.exports = class User {
     });
   }
 
-  static getUserById(id) {
+  static getById(id) {
     return new Promise((res, rej) => {
       pool.query(
-        "SELECT * FROM users WHERE id = $1",
-        [id[0]],
+        "SELECT id, name, email, avatar FROM users WHERE id = $1",
+        [id],
         (error, results) => {
           if (error) {
             rej(error);
           }
 
-          res(results.rows);
+          res(results.rows[0]);
+        }
+      );
+    });
+  }
+
+  static update(userId, name, email, avatar) {
+    return new Promise((res, rej) => {
+      pool.query(
+        "UPDATE users SET name = $1, email = $2, avatar = $3 WHERE id = $4",
+        [name, email, avatar, userId],
+        (error, results) => {
+          if (error) {
+            rej(error);
+          }
+
+          res(results);
         }
       );
     });

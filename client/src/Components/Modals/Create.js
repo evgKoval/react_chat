@@ -1,6 +1,6 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
-import API from "../../api";
 
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
@@ -16,23 +16,20 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Checkbox from "@material-ui/core/Checkbox";
 import Avatar from "@material-ui/core/Avatar";
 
-export default function ModalCreate(props) {
-  const { open, onClose, userId } = props;
+import { addChat } from "../../store/actions/index";
+
+function ModalCreate(props) {
+  const { open, onClose, userId, users } = props;
 
   React.useEffect(() => {
-    API.get("/users").then(res => {
-      const users = res.data.users;
-
+    if (users.length !== 0) {
       const index = users.findIndex(user => user.id === userId);
       users.splice(index, 1);
-
-      setUsers(users);
-    });
-  }, [userId]);
+    }
+  }, [userId, users]);
 
   const [checked, setChecked] = React.useState([]);
   const [chatName, setChatName] = React.useState("");
-  const [users, setUsers] = React.useState([]);
   const [fieldEmpty, setFieldEmpty] = React.useState(false);
 
   const handleToggle = value => () => {
@@ -53,6 +50,8 @@ export default function ModalCreate(props) {
     setFieldEmpty(false);
   };
 
+  const dispatch = useDispatch();
+
   const createChat = () => {
     if (chatName === "") {
       setFieldEmpty(true);
@@ -62,11 +61,13 @@ export default function ModalCreate(props) {
       setFieldEmpty(false);
     }
 
-    API.post("/chats", {
-      name: chatName,
-      created_by: userId,
-      users: checked
-    }).then(res => onClose());
+    dispatch(
+      addChat({
+        name: chatName,
+        created_by: userId,
+        users: checked
+      })
+    ).then(() => onClose());
   };
 
   return (
@@ -89,7 +90,7 @@ export default function ModalCreate(props) {
           error={fieldEmpty}
         />
         <List dense>
-          {users.map(user => {
+          {users.map((user, index) => {
             const labelId = `checkbox-list-secondary-label-${user.id}`;
             return (
               <ListItem key={user.id} button>
@@ -123,5 +124,8 @@ export default function ModalCreate(props) {
 ModalCreate.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  userId: PropTypes.number.isRequired
+  userId: PropTypes.number.isRequired,
+  users: PropTypes.array.isRequired
 };
+
+export default ModalCreate;

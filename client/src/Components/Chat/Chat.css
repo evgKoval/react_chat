@@ -38,17 +38,88 @@
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
-  padding: 24px;
+  padding: 24px 24px 8px;
   display: flex;
   flex-direction: column;
   overflow: auto;
 }
 
 .chat-message {
+  max-width: 100%;
   width: max-content;
   margin-bottom: 16px;
+  word-break: break-word;
 }
 
 .chat-message-own {
   align-self: flex-end;
+}
+
+.chat-message-own li {
+  text-align: right;
+}
+
+.chats {
+  overflow: auto;
+  height: 512px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.chat-message .MuiTypography-caption {
+  color: rgba(0, 0, 0, 0.56);
+  margin-left: 0.5rem;
+}
+
+.created-at {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 0.28rem;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.message-delete {
+  font-size: 1.26rem;
+}
+
+.chat-message-own .MuiInput-underline:before,
+.chat-message-own .MuiInput-underline:after {
+  width: 95%;
+}
+
+.btn-new-chat {
+  height: 56px;
+}
+
+.message-pdf {
+  color: #3f51b5;
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.message-pdf:hover {
+  text-decoration: underline;
+}
+
+.message-pdf svg {
+  padding: 18px;
+  font-size: 1.8rem;
+  background-color: rgba(63, 81, 181, 0.08);
+  border-radius: 50%;
+  margin-right: 0.7rem;
+}
+
+@media screen and (max-width: 959px) {
+  .btn-new-chat .btn-new-chat-text {
+    display: none;
+  }
+
+  .btn-new-chat .MuiListItemIcon-root {
+    justify-content: center;
+    width: 100%;
+  }
 }

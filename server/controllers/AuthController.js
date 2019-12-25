@@ -1,3 +1,10 @@
+const jwtDecode = require("jwt-decode");
+const AWS = require("aws-sdk");
+const s3 = new AWS.S3({
+  accessKeyId: process.env.ACCESS_KEY,
+  secretAccessKey: process.env.SECRET_ACCESS_KEY
+});
+
 const User = require("../models/User");
 const { Helper } = require("./Helper");
 
@@ -6,6 +13,53 @@ exports.index = async function(request, response) {
     const users = await User.getAll();
 
     response.status(200).json({ users });
+  } catch (error) {
+    response.status(400).json(error);
+  }
+};
+
+exports.show = async function(request, response) {
+  const userId = request.params.id;
+
+  try {
+    const user = await User.getById(userId);
+
+    response.status(200).json({ user });
+  } catch (error) {
+    response.status(400).json(error);
+  }
+};
+
+exports.update = async function(request, response) {
+  const userId = request.user.id;
+  const { name, email, file_name } = request.body;
+
+  const filedata = request.files.file;
+  filedata.name = userId + "_" + filedata.name;
+
+  const base64data = Buffer.from(filedata.data, "binary");
+
+  const params = {
+    Bucket: process.env.BUCKET_NAME,
+    Key: filedata.name,
+    Body: base64data,
+    ACL: "public-read"
+  };
+
+  s3.upload(params, function(err, data) {
+    if (err) {
+      throw err;
+    }
+
+    console.log(`File uploaded successfully. ${data.Location}`);
+  });
+
+  try {
+    await User.update(userId, name, email, file_name);
+
+    response
+      .status(200)
+      .json({ message: "User profile data has been updated" });
   } catch (error) {
     response.status(400).json(error);
   }

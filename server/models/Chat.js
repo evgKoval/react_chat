@@ -1,6 +1,22 @@
 const pool = require("../queries");
 
 module.exports = class Chat {
+  static getCreatorByChatId(chatId) {
+    return new Promise((res, rej) => {
+      pool.query(
+        "SELECT u.email FROM chats c LEFT JOIN users u ON u.id = c.created_by WHERE c.id = $1",
+        [chatId],
+        (error, results) => {
+          if (error) {
+            rej(error);
+          }
+
+          res(results.rows[0]);
+        }
+      );
+    });
+  }
+
   static getAll() {
     return new Promise((res, rej) => {
       pool.query("SELECT * FROM chats", (error, results) => {
@@ -64,8 +80,24 @@ module.exports = class Chat {
   static sendText(chatId, userId, text) {
     return new Promise((res, rej) => {
       pool.query(
-        "INSERT INTO messages (chat_id, user_id, text) VALUES ($1, $2, $3)",
+        "INSERT INTO messages (chat_id, user_id, text) VALUES ($1, $2, $3) RETURNING *",
         [chatId, userId, text],
+        (error, results) => {
+          if (error) {
+            rej(error);
+          }
+
+          res(results.rows[0]);
+        }
+      );
+    });
+  }
+
+  static accessUserInChat(chatId, userId) {
+    return new Promise((res, rej) => {
+      pool.query(
+        "INSERT INTO chat_users (chat_id, user_id) VALUES ($1, $2)",
+        [chatId, userId],
         (error, results) => {
           if (error) {
             rej(error);
