@@ -7,6 +7,7 @@ import Header from "./Components/Header/Header";
 import Chat from "./Components/Chat/Chat";
 import Login from "./Components/Auth/Login";
 import Register from "./Components/Auth/Register";
+import Profile from "./Components/Profile/Profile";
 
 function App() {
   return (
@@ -17,6 +18,9 @@ function App() {
           <Switch>
             <Route exact path="/">
               <Chat />
+            </Route>
+            <Route path="/profile">
+              <Profile />
             </Route>
             <Route path="/login">
               <Login />

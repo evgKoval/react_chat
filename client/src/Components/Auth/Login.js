@@ -1,5 +1,6 @@
 import React from "react";
 import API from "../../api";
+import { Redirect } from "react-router-dom";
 
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 
@@ -36,12 +37,19 @@ class Login extends React.Component {
     })
       .then(res => {
         localStorage.setItem("token", res.data.token);
-        //this.setState({ redirect: true });
+
+        this.setState({ redirect: true });
       })
       .catch(error => this.setState({ error: error.response.data.message }));
   }
 
   render() {
+    const { redirect } = this.state;
+
+    if (redirect) {
+      return <Redirect to="/" />;
+    }
+
     return (
       <ValidatorForm onSubmit={this.handleSubmit} style={{ marginBottom: 32 }}>
         <h1 style={{ marginBottom: 24 }}>Login</h1>

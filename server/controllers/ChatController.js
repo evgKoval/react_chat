@@ -1,6 +1,8 @@
 const jwtDecode = require("jwt-decode");
+const nodemailer = require("nodemailer");
 
 const Chat = require("../models/Chat");
+const User = require("../models/User");
 
 exports.index = async function(request, response) {
   try {
@@ -57,4 +59,56 @@ exports.send = async function(request, response) {
   } catch (error) {
     response.status(400).json(error);
   }
+};
+
+exports.access = async function(request, response) {
+  const chatId = request.body.chat_id;
+  const chatCreator = await Chat.getCreatorByChatId(chatId);
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.NODEMAILER_USER,
+      pass: process.env.NODEMAILER_PASSWORD
+    }
+  });
+
+  const userId = request.body.user_id;
+  const userName = request.body.user_name;
+  const userEmail = request.body.user_email;
+  const chatName = request.body.chat_name;
+
+  const mailOptions = {
+    from: process.env.NODEMAILER_USER,
+    to: chatCreator.email,
+    subject: "Someone has wanted to join in your chat!",
+    text: `${userName} (${userEmail}) just asked to join in your chat (${chatName}). To access ${userName} click this link http://localhost:5000/access/${chatId}/${userId}`
+  };
+
+  transporter.sendMail(mailOptions, function(error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      response.json({
+        email: "Success"
+      });
+    }
+  });
+};
+
+exports.confirm = async function(request, response) {
+  const chatId = request.params.chatId;
+  const userId = request.params.userId;
+
+  const access = await Chat.accessUserInChat(chatId, userId);
+
+  if (access.length == 0) {
+    response.json({
+      access: "User isn't accessed to chat"
+    });
+  }
+
+  response.json({
+    access: "User has accessed to chat"
+  });
 };

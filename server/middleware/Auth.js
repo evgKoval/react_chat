@@ -12,9 +12,9 @@ exports.Auth = {
     try {
       const decoded = await jwt.verify(token, process.env.JWT_SECRET);
 
-      const user = await User.getUserById([decoded.userId]);
+      const user = await User.getById([decoded.userId][0]);
 
-      if (!user[0]) {
+      if (!user) {
         return res
           .status(400)
           .send({ message: "The token you provided is invalid" });
