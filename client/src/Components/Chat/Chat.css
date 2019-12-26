@@ -113,6 +113,11 @@
   margin-right: 0.7rem;
 }
 
+.chat-icon.MuiSvgIcon-root {
+  color: rgba(0, 0, 0, 0.42);
+  font-size: 1.26rem;
+}
+
 @media screen and (max-width: 959px) {
   .btn-new-chat .btn-new-chat-text {
     display: none;

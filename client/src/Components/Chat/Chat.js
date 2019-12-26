@@ -94,15 +94,19 @@ class Chat extends React.Component {
     }
 
     this.props.getChats().then(() => {
-      const chatId = this.props.chats[0].id;
-      const userId = jwtDecode(token).userId;
+      if (this.props.chats.length !== 0) {
+        const chatId = this.props.chats[0].id;
+        const userId = jwtDecode(token).userId;
 
-      this.setState({ selectedChatId: chatId, loadingChats: false });
+        this.setState({ selectedChatId: chatId, loadingChats: false });
 
-      socket.emit("get access", {
-        chatId,
-        userId
-      });
+        socket.emit("get access", {
+          chatId,
+          userId
+        });
+      } else {
+        this.setState({ loadingChats: false, loadingMessages: false });
+      }
     });
 
     socket.on("get access", responseAccess => {
