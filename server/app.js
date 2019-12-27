@@ -74,7 +74,7 @@ io.on("connection", socket => {
         }
 
         pool.query(
-          "SELECT m.id, m.created_at, m.text, m.edited, m.type, u.email, u.name, u.avatar, 'false' AS own FROM messages m LEFT JOIN users u ON m.user_id = u.id WHERE m.id = $1",
+          "SELECT m.id, m.created_at, m.text, m.edited, m.type, m.chat_id, u.email, u.name, u.avatar, 'false' AS own FROM messages m LEFT JOIN users u ON m.user_id = u.id WHERE m.id = $1",
           [results.rows[0].id],
           (error, results) => {
             if (error) {

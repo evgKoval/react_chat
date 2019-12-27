@@ -35,7 +35,10 @@ import {
   sendMessage
 } from "../../store/actions/index";
 
-const socket = io.connect("http://localhost:5000");
+const socket = io.connect(
+  "http://ec2-3-124-187-242.eu-central-1.compute.amazonaws.com:5000"
+);
+// const socket = io.connect("http://localhost:5000");
 
 const mapStateToProps = state => {
   return {
@@ -73,7 +76,8 @@ class Chat extends React.Component {
       loadingChats: true,
       loadingMessages: true,
       access: false,
-      requestSent: false
+      requestSent: false,
+      notificate: false
     };
 
     this.sendInput = React.createRef();
@@ -94,11 +98,30 @@ class Chat extends React.Component {
     }
 
     this.props.getChats().then(() => {
-      if (this.props.chats.length !== 0) {
-        const chatId = this.props.chats[0].id;
+      const chats = this.props.chats;
+      if (chats.length !== 0) {
+        const url = window.location.href;
+        let hash = false;
+
+        if (url.match(/#(.*)/)) {
+          hash = url.match(/#(.*)/)[1];
+        }
+
+        let chatId = chats[0].id;
+
+        if (hash) {
+          chatId = parseInt(hash);
+        }
+
         const userId = jwtDecode(token).userId;
 
-        this.setState({ selectedChatId: chatId, loadingChats: false });
+        const indexForSelected = chats.findIndex(chat => chat.id === chatId);
+
+        this.setState({
+          selectedChatId: chatId,
+          selectedIndex: indexForSelected,
+          loadingChats: false
+        });
 
         socket.emit("get access", {
           chatId,
@@ -138,6 +161,19 @@ class Chat extends React.Component {
         messages: [...this.state.messages, message],
         messagesFiltered: [...this.state.messages, message]
       });
+
+      const notification = new Notification(
+        `${message.name} has sent a message`,
+        {
+          body: message.text,
+          tag: "got-message" + message.id
+        }
+      );
+
+      notification.onclick = e => {
+        e.preventDefault();
+        window.open(`http://localhost:3000/#${message.chat_id}`, "_blank");
+      };
     });
 
     socket.on("edit message", editedMessage => {
@@ -189,6 +225,38 @@ class Chat extends React.Component {
     });
 
     this.props.getUsers();
+
+    function urlBase64ToUint8Array(base64String) {
+      var padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+      var base64 = (base64String + padding)
+        .replace(/\-/g, "+")
+        .replace(/_/g, "/");
+
+      var rawData = window.atob(base64);
+      var outputArray = new Uint8Array(rawData.length);
+
+      for (var i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    }
+
+    navigator.serviceWorker.ready.then(serviceWorkerRegistration => {
+      var options = {
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(
+          "BBZeRDMeH6fL2sXZ9ILBxn7-f9pVWtnWmJ-6mbaEkdbZnFu2Q0DPrICFllzaFlvAu5gV5qtLFYBFd7jp2TFUHK8"
+        )
+      };
+      serviceWorkerRegistration.pushManager.subscribe(options).then(
+        pushSubscription => {
+          this.setState({ notificate: true });
+        },
+        function(error) {
+          console.log(error);
+        }
+      );
+    });
   }
 
   handleSearchChat(value) {
