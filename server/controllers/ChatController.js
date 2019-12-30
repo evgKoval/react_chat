@@ -14,6 +14,24 @@ exports.index = async function(request, response) {
   }
 };
 
+exports.show = async function(request, response) {
+  const chatId = request.params.id;
+
+  try {
+    const chat = await Chat.getChatById(chatId);
+
+    const users = [];
+
+    chat.map(user => {
+      users.push(user.user_id);
+    });
+
+    response.status(200).json({ name: chat[0].name, users });
+  } catch (error) {
+    response.status(400).json(error);
+  }
+};
+
 exports.store = async function(request, response) {
   const name = request.body.name;
   const createdBy = request.body.created_by;
@@ -29,6 +47,29 @@ exports.store = async function(request, response) {
     }
 
     response.status(200).json({ chat: chat.id });
+  } catch (error) {
+    response.status(400).json(error);
+  }
+};
+
+exports.update = async function(request, response) {
+  const chatId = request.body.chat_id;
+  const name = request.body.name;
+  const createdBy = request.body.created_by;
+  const users = request.body.users;
+
+  users.push(createdBy);
+
+  try {
+    await Chat.updateName(name, chatId);
+
+    await Chat.deleteUsers(chatId);
+
+    for (let i = 0; i < users.length; i++) {
+      await Chat.storeUser(chatId, users[i]);
+    }
+
+    response.status(200).json({ message: "Chat has been updated" });
   } catch (error) {
     response.status(400).json(error);
   }

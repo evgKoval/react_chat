@@ -19,13 +19,29 @@ module.exports = class Chat {
 
   static getAll() {
     return new Promise((res, rej) => {
-      pool.query("SELECT * FROM chats", (error, results) => {
+      pool.query("SELECT * FROM chats ORDER BY id", (error, results) => {
         if (error) {
           rej(error);
         }
 
         res(results.rows);
       });
+    });
+  }
+
+  static getChatById(chatId) {
+    return new Promise((res, rej) => {
+      pool.query(
+        "SELECT name, user_id FROM chat_users cu LEFT JOIN chats c ON cu.chat_id = c.id WHERE chat_id = $1",
+        [chatId],
+        (error, results) => {
+          if (error) {
+            rej(error);
+          }
+
+          res(results.rows);
+        }
+      );
     });
   }
 
@@ -50,6 +66,22 @@ module.exports = class Chat {
       pool.query(
         "INSERT INTO chat_users (chat_id, user_id) VALUES ($1, $2)",
         [chatId, usersId],
+        (error, results) => {
+          if (error) {
+            rej(error);
+          }
+
+          res(results);
+        }
+      );
+    });
+  }
+
+  static deleteUsers(chatId) {
+    return new Promise((res, rej) => {
+      pool.query(
+        "DELETE FROM chat_users WHERE chat_id = $1",
+        [chatId],
         (error, results) => {
           if (error) {
             rej(error);
@@ -98,6 +130,22 @@ module.exports = class Chat {
       pool.query(
         "INSERT INTO chat_users (chat_id, user_id) VALUES ($1, $2)",
         [chatId, userId],
+        (error, results) => {
+          if (error) {
+            rej(error);
+          }
+
+          res(results);
+        }
+      );
+    });
+  }
+
+  static updateName(name, chatId) {
+    return new Promise((res, rej) => {
+      pool.query(
+        "UPDATE chats SET name = $1 WHERE id = $2",
+        [name, chatId],
         (error, results) => {
           if (error) {
             rej(error);

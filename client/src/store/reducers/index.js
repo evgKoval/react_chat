@@ -20,6 +20,17 @@ function rootReducer(state = initialState, action) {
     });
   }
 
+  if (action.type === "EDIT_CHAT") {
+    state.chats = [...state.chats];
+
+    const index = state.chats.findIndex(chat => chat.id === action.payload.id);
+    state.chats[index] = action.payload;
+
+    return Object.assign({}, state, {
+      chats: state.chats
+    });
+  }
+
   if (action.type === "USERS_LOADED") {
     return Object.assign({}, state, {
       users: state.users.concat(action.payload)

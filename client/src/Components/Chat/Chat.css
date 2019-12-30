@@ -116,6 +116,11 @@
 .chat-icon.MuiSvgIcon-root {
   color: rgba(0, 0, 0, 0.42);
   font-size: 1.26rem;
+  transition: 0.15s;
+}
+
+.chat-icon.MuiSvgIcon-root:hover {
+  color: rgba(0, 0, 0, 0.84);
 }
 
 @media screen and (max-width: 959px) {
