@@ -28,6 +28,25 @@ export function getChats() {
   };
 }
 
+export function editChat(payload) {
+  return async function(dispatch) {
+    API.put("/chat", {
+      chat_id: payload.chat_id,
+      name: payload.name,
+      created_by: payload.created_by,
+      users: payload.users
+    });
+
+    const chat = {
+      id: payload.chat_id,
+      name: payload.name,
+      created_by: payload.created_by
+    };
+
+    dispatch({ type: "EDIT_CHAT", payload: chat });
+  };
+}
+
 export function getUsers() {
   return async function(dispatch) {
     const res = await API.get("/users");
@@ -70,7 +89,7 @@ export function getUserById(userId) {
 }
 
 export function updateUser(payload) {
-  return async function(dispatch) {
+  return async function() {
     const form = new FormData();
 
     form.set("file", payload.file);

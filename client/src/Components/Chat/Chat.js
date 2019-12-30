@@ -1,5 +1,5 @@
 import React from "react";
-import { connect } from "react-redux";
+import { connect, connectAdvanced } from "react-redux";
 import jwtDecode from "jwt-decode";
 import "./Chat.css";
 import io from "socket.io-client";
@@ -24,8 +24,7 @@ import Button from "@material-ui/core/Button";
 import SendIcon from "@material-ui/icons/Send";
 import PostAddIcon from "@material-ui/icons/PostAdd";
 import AttachFileIcon from "@material-ui/icons/AttachFile";
-
-// import { getChatsSocket, getMessagesById, sendMessage } from "../../socket";
+import EditIcon from "@material-ui/icons/Edit";
 
 import {
   addChat,
@@ -35,10 +34,8 @@ import {
   sendMessage
 } from "../../store/actions/index";
 
-const socket = io.connect(
-  "http://ec2-3-124-187-242.eu-central-1.compute.amazonaws.com:5000"
-);
-// const socket = io.connect("http://localhost:5000");
+// const socket = io.connect("https://reactchats:5000");
+const socket = io.connect("http://localhost:5000");
 
 const mapStateToProps = state => {
   return {
@@ -77,7 +74,8 @@ class Chat extends React.Component {
       loadingMessages: true,
       access: false,
       requestSent: false,
-      notificate: false
+      notificate: false,
+      modalEdit: false
     };
 
     this.sendInput = React.createRef();
@@ -99,6 +97,7 @@ class Chat extends React.Component {
 
     this.props.getChats().then(() => {
       const chats = this.props.chats;
+      this.setState({ chatsFiltered: chats });
       if (chats.length !== 0) {
         const url = window.location.href;
         let hash = false;
@@ -260,7 +259,7 @@ class Chat extends React.Component {
   }
 
   handleSearchChat(value) {
-    const chats = [...this.state.chats];
+    const chats = [...this.props.chats];
 
     if (value === "") {
       this.setState({ chatsFiltered: chats });
@@ -283,6 +282,8 @@ class Chat extends React.Component {
     const messagesFiltered = messages.filter(message =>
       message.text.toLowerCase().includes(value)
     );
+
+    console.log(messagesFiltered);
 
     this.setState({ messagesFiltered });
   }
@@ -398,11 +399,6 @@ class Chat extends React.Component {
         userId: this.state.userId
       });
 
-      // socket.emit("get messages", {
-      //   userId: this.state.userId,
-      //   chatId: chatId
-      // });
-
       this.sendInput.current.querySelector("input").value = "";
     };
 
@@ -411,7 +407,7 @@ class Chat extends React.Component {
     };
 
     const handleCloseModal = () => {
-      this.setState({ open: false });
+      this.setState({ open: false, modalEdit: false });
     };
 
     const handleEditedMessage = (text, messageId) => {
@@ -441,6 +437,10 @@ class Chat extends React.Component {
         user_name: this.props.currentUser.name,
         user_email: this.props.currentUser.email
       }).then(() => this.setState({ requestSent: true }));
+    };
+
+    const handleEditChat = chatId => {
+      this.setState({ modalEdit: true });
     };
 
     return (
@@ -480,12 +480,12 @@ class Chat extends React.Component {
                       style={{ textAlign: "center" }}
                     />
                   </div>
-                ) : this.props.chats.length === 0 ? (
+                ) : this.state.chatsFiltered.length === 0 ? (
                   <h5 style={{ textAlign: "center" }}>
                     There are no chats by this query
                   </h5>
                 ) : (
-                  this.props.chats.map((chat, index) => {
+                  this.state.chatsFiltered.map((chat, index) => {
                     return (
                       <ListItem
                         key={index}
@@ -494,6 +494,15 @@ class Chat extends React.Component {
                         onClick={event => handleListItemClick(index, chat.id)}
                       >
                         <ListItemText primary={chat.name} />
+                        {chat.created_by === this.state.userId ? (
+                          <EditIcon
+                            className="chat-icon"
+                            onClick={() => {
+                              handleEditChat(chat.id);
+                              handleClickOpenModal();
+                            }}
+                          />
+                        ) : null}
                       </ListItem>
                     );
                   })
@@ -547,7 +556,7 @@ class Chat extends React.Component {
                   this.state.messagesFiltered.map((message, index) => {
                     return (
                       <Message
-                        key={index}
+                        key={message.id}
                         id={message.id}
                         name={message.name}
                         avatar={message.avatar}
@@ -620,6 +629,8 @@ class Chat extends React.Component {
           onClose={handleCloseModal}
           userId={this.state.userId}
           users={this.props.users}
+          edit={this.state.modalEdit}
+          chatId={this.state.selectedChatId}
         />
       </Paper>
     );

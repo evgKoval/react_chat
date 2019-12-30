@@ -1,3 +1,5 @@
+const https = require("https");
+const fs = require("fs");
 const express = require("express");
 const env = require("env2")(__dirname + "/.env");
 const cors = require("cors");
@@ -6,6 +8,16 @@ const router = require("./routes");
 const fileUpload = require("express-fileupload");
 const app = express();
 const server = require("http").Server(app);
+// const server = https.createServer(
+//   {
+//     key: fs.readFileSync("/etc/letsencrypt/live/reactchats.com/privkey.pem"),
+//     cert: fs.readFileSync("/etc/letsencrypt/live/reactchats.com/cert.pem"),
+//     ca: fs.readFileSync("/etc/letsencrypt/live/reactchats.com/chain.pem"),
+//     requestCert: false,
+//     rejectUnauthorized: false
+//   },
+//   app
+// );
 const io = require("socket.io")(server);
 const AWS = require("aws-sdk");
 const s3 = new AWS.S3({

@@ -11,6 +11,8 @@ router.put("/users", Auth.verifyToken, AuthController.update);
 router.post("/login", AuthController.login);
 router.post("/register", AuthController.register);
 
+router.get("/chat/:id", Auth.verifyToken, ChatController.show);
+router.put("/chat", Auth.verifyToken, ChatController.update);
 router.get("/chats", Auth.verifyToken, ChatController.index);
 router.post("/chats", Auth.verifyToken, ChatController.store);
 router.get("/chats/:id/messages", Auth.verifyToken, ChatController.messages);
